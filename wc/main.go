@@ -34,11 +34,11 @@ func readFile(filePath string) (string, error) {
 }
 
 // Count the number of bytes, lines, words, and characters in the provided string
-func getCount(fileStr string) (int32, int32, int32, int32) {
+func getCount(fileStr string) (int, int, int, int) {
 	numberOfByte := len(fileStr)
-	var numberOfLine int32
-	var numberOfWords int32
-	var numberOfChar int32
+	var numberOfLine int
+	var numberOfWords int
+	var numberOfChar int
 
 	inWord := false
 
@@ -63,13 +63,13 @@ func getCount(fileStr string) (int32, int32, int32, int32) {
 			inWord = true
 		}
 
-		// Count the number of characters excluding newline characters
-		if fileStr[i] != '\n' {
-			numberOfChar++
-		}
 	}
 
-	return int32(numberOfByte), numberOfLine, numberOfWords, numberOfChar
+	// Count the number of characters excluding newline characters
+	runes := []rune(fileStr)
+	numberOfChar = len(runes)
+
+	return int(numberOfByte), numberOfLine, numberOfWords, numberOfChar
 }
 
 // Check if a character is a word boundary (space)
@@ -85,9 +85,9 @@ func main() {
 	args := flag.Args()
 	var fileStr string
 	var filePath string
-
 	// Check if a file path is provided as a command-line argument
 	if len(args) != 0 {
+
 		filePath = args[0]
 		var err error
 		fileStr, err = readFile(filePath)
@@ -97,16 +97,25 @@ func main() {
 		}
 	} else {
 		// If no file path is provided, read from stdin
-		reader := bufio.NewReader(os.Stdin)
-		for {
-			line, err := reader.ReadString('\n')
-			input += line
-			// Check for the end of input
-			if err != nil {
-				break
+		stat, _ := os.Stdin.Stat()
+
+		if (stat.Mode() & os.ModeCharDevice) == 0 {
+			// Data is being piped in through stdin
+			reader := bufio.NewReader(os.Stdin)
+			for {
+				line, err := reader.ReadString('\n')
+				input += line
+				// Check for the end of input
+				if err != nil {
+					break
+				}
 			}
+			fileStr = input
+		} else {
+			// No file path and no stdin input provided
+			fmt.Println("Error: No input provided. Please provide either a file path or input through stdin.")
+			return
 		}
-		fileStr = input
 	}
 
 	// Get counts based on the specified options

@@ -74,6 +74,10 @@ func parseRequest(reader *bufio.Reader) (HTTPRequest, error) {
 	return request, nil
 }
 
+func Router() {
+
+}
+
 func handleConnections(conn net.Conn) {
 	fmt.Println("Connection accepted from:", conn.RemoteAddr())
 
@@ -83,34 +87,18 @@ func handleConnections(conn net.Conn) {
 	// Listen to the connection
 	reader := bufio.NewReader(conn)
 	httpRequest, err := parseRequest(reader)
+
+	if err != nil {
+		fmt.Println("Something went wrong while reading http Request", err)
+	}
+
 	fmt.Println(httpRequest, "httpRequest")
 
-	// rawRequest := ""
-	// for {
-	// 	fmt.Println("Attempting to read a line...")
-	// 	line, err := reader.ReadString('\n')
-
-	// 	if err != nil {
-	// 		if err == io.EOF {
-	// 			fmt.Println("EOF reached. Raw request so far:", rawRequest)
-	// 		} else {
-	// 			fmt.Println("Error reading from connection:", err)
-	// 		}
-	// 		return
-	// 	}
-
-	// 	rawRequest += line
-
-	// 	if line == "\r\n" {
-	// 		fmt.Println("End of headers reached")
-	// 		break
-	// 	}
-	// }
-
-	// fmt.Println("Full raw request:")
-	// fmt.Println(rawRequest)
-
 	response := "HTTP/1.1 404 Not Found\r\n\r\n"
+
+	if httpRequest.Path == "/" {
+		response = "HTTP/1.1 200 OK\r\n\r\n"
+	}
 
 	_, err = conn.Write([]byte(response))
 	if err != nil {
@@ -129,12 +117,14 @@ func main() {
 
 	fmt.Println("Server Started at http://localhost:4221")
 
-	conn, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
-	}
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection:", err)
+			continue
+		}
 
-	handleConnections(conn)
+		go handleConnections(conn)
+	}
 
 }

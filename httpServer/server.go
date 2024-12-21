@@ -74,10 +74,15 @@ func parseRequest(reader *bufio.Reader) (HTTPRequest, error) {
 	return request, nil
 }
 
-func Router() {
+// A router function to handle the incoming request
+/**
+ lets keep the signature similar to the mux router
+ */
 
-}
 
+
+
+// A custom function to handle the incoming connection
 func handleConnections(conn net.Conn) {
 	fmt.Println("Connection accepted from:", conn.RemoteAddr())
 
@@ -124,6 +129,7 @@ func main() {
 			continue
 		}
 
+		/** Handle the connection in a new goroutine */
 		go handleConnections(conn)
 	}
 
